@@ -4,6 +4,7 @@ const User = require("../models/UserModel")
 const { login,
     deposit,
     withdraw,
+    allTransactions,
     register,
     deleteUser,
     disable,
@@ -21,9 +22,9 @@ module.exports = () => {
     // 3) User can WITHDRAW
     router.post("/:id/withdraw/:money", getUserId, withdraw)
     // 4) User can TRANSFER to another User
-
+    router.post("/:id/:id2")
     // 5) User can see all their TRANSACTIONS
-
+    router.post("/:id/transactions", getUserId, allTransactions)
     //////////////////////////////////////////////////////////
 
     // 6) Admin can REGISTER user

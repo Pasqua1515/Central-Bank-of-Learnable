@@ -49,8 +49,10 @@ const login = async (req, res) => {
         //         }
         //     )
         //     user.token = token
-
+        user.online = true
+        user.save()
         res.status(200).send(user)
+
     }
     // res.status(400).send("Invalid Credentials")
 
@@ -161,7 +163,7 @@ const deposit = async (req, res) => {
         res.user.save()
 
 
-        res.send({ message: "Deposited successfully" })
+        res.send({ message: money + "Deposited successfully" })
     } catch (err) {
         res.status(500).send({ message: "Unable to deposit " })
     }
@@ -195,17 +197,47 @@ const withdraw = async (req, res) => {
         res.user.save()
 
 
-        res.send({ message: "Withdrawn successfully" })
+        res.send({ message: money + "Withdrawn successfully" })
     } catch (err) {
         res.status(500).send({ message: "Unable to withdraw " })
     }
 
 }
 
+
+
+
+
+const allTransactions = async (req, res) => {
+    console.log(res.user)
+    try {
+
+        if (res.user.disable == true) {
+            res.send({ message: "This user is disabled" })
+        }
+
+        if (res.user.online == false) {
+            res.send({ message: "This user is not logged in" })
+        }
+
+        res.send(res.user.transactions)
+
+
+    } catch (err) {
+        res.status(500).send({ message: err.message })
+    }
+}
+
+
+
+
+
+
 module.exports = {
     login,
     deposit,
     withdraw,
+    allTransactions,
     register,
     deleteUser,
     disable,
