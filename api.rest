@@ -7,10 +7,42 @@ Content-Type: application/json
 
 
 {
-    "username":"Pasqua",
-    "balance": 200,
-    "password": "459",
-    "email": "chideraemeka4@gmail.com"
+    "first_name":"  Hope",
+    "last_name": "Emeka",
+    "balance": 1000,
+    "password": "12345",
+    "email": "hope@gmail.com"
 }
 
 ###
+
+POST http://localhost:5050/api/login
+Content-Type: application/json
+
+{
+  
+    "password": "12345",
+    "email": "alakai@gmail.com"
+}
+
+###
+
+POST http://localhost:5050/api/61b7e923b6d26ffb64f2fe5c/transactions
+
+###
+
+POST http://localhost:5050/api/61b96536af7b1ec619291317/withdraw/1000
+
+###
+
+POST http://localhost:5050/api/61b965dbaf7b1ec61929131b/transfer/61b96536af7b1ec619291317/50
+
+###
+
+POST http://localhost:5050/api/reverse/2b5a5a2d-5236-4278-b9cc-3cb4c93925c5/61b965dbaf7b1ec61929131b
+Content-Type: application/json
+
+{
+    
+}
+

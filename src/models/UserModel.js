@@ -15,11 +15,16 @@ const TransSchema = new Schema({
     debit: {
         type: Boolean
     },
+    accout: {
+        type: String
+    },
     amount: {
         type: Number,
         required: true
     },
-
+    transaction: {
+        type: String
+    },
     desc: {
         type: String,
         trim: true
@@ -31,12 +36,16 @@ const TransSchema = new Schema({
     },
     total: {
         type: Number
-    }
+    },
+    reversed: false
 })
 
 
 const UserSchema = new Schema({
-    username: {
+    first_name: {
+        type: String
+    },
+    last_name: {
         type: String
     },
     password: {
@@ -49,9 +58,7 @@ const UserSchema = new Schema({
     transactions: [TransSchema],
     balance: {
         type: Number,
-        required: true,
-        min: 0,
-        max: 100000000
+        required: true
     },
     disable: {
         default: false

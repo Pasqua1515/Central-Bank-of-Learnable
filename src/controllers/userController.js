@@ -1,27 +1,10 @@
 const User = require("../models/UserModel")
+const Trans = require("../models/transModel")
 var jwt = require("jsonwebtoken")
 var bcrypt = require("bcryptjs")
+const { v4: uuidv4 } = require("uuid")
 
 const login = async (req, res) => {
-
-    // const firstParameter = req.params.first
-    // const matchingUsername = await User.find({ username: firstParameter })
-    // const matchingemail = await User.find({ email: firstParameter })
-
-    // console.log(matchingUsername)
-
-    // if (!matchingUsername || !matchingemail) {
-    //     res.send({ message: "Username or email not found. Try again" })
-    // }
-
-    // try {
-    //     //res.user.online = true
-    //     //res.user.save()
-
-    //     res.send({
-    //         message: "Logged in"
-    //     })
-
 
 
     try {
@@ -36,19 +19,16 @@ const login = async (req, res) => {
 
         const isMatched = await bcrypt.compare(password, user.password)
 
-        if (!isMatched) res.send({
+        if (!isMatched) return res.status(400).send({
             message: "email/password not valid"
         })
-        // {
-        //     //create token
-        //     const token = jwt.sign(
-        //         { user_id: user._id, email },
-        //         process.env.TOKEN_KEY,
-        //         {
-        //             expiresIn: "2h",
-        //         }
-        //     )
-        //     user.token = token
+
+        //create token
+        const token = jwt.sign(
+            { user_id: user._id, email },
+            process.env.TOKEN_KEY)
+
+        user.token = token
         user.online = true
         user.save()
         res.status(200).send(user)
@@ -65,25 +45,24 @@ const login = async (req, res) => {
 const register = async (req, res, next) => {
     try {
 
-        const { email, password, username, balance } = req.body;
+        const { email, password, first_name, last_name, balance } = req.body;
 
-        if (!email || !password || !username || !balance) res.send({ message: "missing parameter" })
+        if (!email || !password || !first_name || !last_name || !balance) res.send({ message: "missing parameter" })
 
         const doesExist = await User.findOne({ email })
         if (doesExist) res.status(409).send({ message: "This email is already registered" })
 
         encryptedPassword = await bcrypt.hash(password, 10)
 
-        const user = await User.create({ username, email: email.toLowerCase(), password: encryptedPassword, balance })
+        const user = await User.create({ first_name, last_name, email: email.toLowerCase(), password: encryptedPassword, balance })
         //create token
         const token = jwt.sign(
             {
-                user_id: user._id,
-                email: user.email
+                user_id: user._id
             },
             process.env.TOKEN_KEY,
             {
-                expiresIn: "2h"
+                expiresIn: 60 * 10
             }
         )
 
@@ -130,7 +109,7 @@ const disable = async (req, res) => {
         res.user.online = false
         res.user.save()
 
-        res.send({ message: res.user.username + " has been deactivated succesfully" })
+        res.send({ message: res.user.first_name + " has been deactivated succesfully" })
     } catch (err) {
         res.status(500).send({ message: err.message })
     }
@@ -162,6 +141,14 @@ const deposit = async (req, res) => {
         res.user.balance = total
         res.user.save()
 
+        const newT = await Trans.create({
+            account: res.user.first_name,
+            debit: true,
+            amount: money,
+            desc: "Withdrawal",
+            total
+        })
+        newT.save()
 
         res.send({ message: money + "Deposited successfully" })
     } catch (err) {
@@ -193,10 +180,21 @@ const withdraw = async (req, res) => {
             total
         }
         transArray.push(params)
+        if (money > res.user.balance) {
+            res.send("Balance is lower than request")
+        }
         res.user.balance = total
         res.user.save()
 
+        const newT = await Trans.create({
+            account: res.user.first_name,
+            debit: true,
+            amount: money,
+            desc: "Withdrawal",
+            total
+        })
 
+        newT.save()
         res.send({ message: money + "Withdrawn successfully" })
     } catch (err) {
         res.status(500).send({ message: "Unable to withdraw " })
@@ -228,19 +226,138 @@ const allTransactions = async (req, res) => {
     }
 }
 
+const transfer = async (req, res) => {
+
+    const money = parseInt(req.params.money)
+
+    const senderId = req.params.sender;
+    const receiverId = req.params.receiver
+
+    const senderUser = await User.findById(senderId)
+    const receiverUser = await User.findById(receiverId)
+
+    const uniq = uuidv4()
+
+    if (!(senderUser || receiverUser)) {
+        res.status(404).send("Either the sender or the receiver was not found")
+    }
+
+    if (senderUser.disable == true) {
+        res.send({ message: "This user account is disabled" })
+    }
+
+    if (senderUser.online == false) {
+        res.send({ message: "Please log in to withdraw" })
+    }
+
+    try {
+        const paramsSender = {
+            transaction: uniq,
+            debit: true,
+            amount: money,
+            account: receiverUser.email,
+            desc: "Transaction",
+            total: senderUser.balance - money
+        }
+
+        const paramsReceiver = {
+            transaction: uniq,
+            credit: true,
+            amount: money,
+            account: senderUser.email,
+            desc: "Transaction",
+            total: receiverUser.balance + money
+
+        }
+        senderUser.transactions.push(paramsSender)
+        receiverUser.transactions.push(paramsReceiver)
+
+        senderUser.balance -= money
+        receiverUser.balance += money
+
+
+        const newT = await Trans.create({
+            transaction: uniq,
+            account: senderUser.first_name,
+            debit: true,
+            sender: senderUser.first_name,
+            receiver: receiverUser.first_name,
+            amount: money,
+            desc: "Transaction",
+            total: senderUser.balance - money
+        })
+
+        newT.save()
+
+        senderUser.save()
+        receiverUser.save()
+        //console.log(senderUser, receiverUser)
+
+        await
+
+            res.send("Transfer successful")
 
 
 
+    } catch (err) {
+        res.send({ message: err.message })
+    }
+}
+
+
+const reverse = async (req, res) => {
+    const id = req.params.id
+    const TransNeede = await Trans.find({ transaction: id })
+    //console.log(TransNeede[0])
+
+    TransNeede[0].reversed = true
+
+
+    TransNeede[0].save()
+
+
+
+    const userNeede = TransNeede[0].account
+    //console.log(userNeede)
+    const user = await User.findOne({
+        first_name: userNeede
+    })
+
+    user.save()
+
+    // const paramSenderRev = {
+    //     transaction: id,
+    //     credit: true,
+    //     //account,
+    //     amount: money,
+    //     desc: "Transaction",
+    //     total: receiverUser.balance + money
+
+    // }
+
+    // const paramReceiverRev = {
+    //     transaction: id,
+    //     debit: true,
+    //     //account,
+    //     amount: money,
+    //     desc: "Transaction",
+    //     total: receiverUser.balance + money
+
+    // }
+
+}
 
 
 module.exports = {
     login,
     deposit,
     withdraw,
+    transfer,
     allTransactions,
     register,
     deleteUser,
     disable,
+    reverse,
     allUsers,
     getoneUser
 }
