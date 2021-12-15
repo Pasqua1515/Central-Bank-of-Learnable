@@ -221,10 +221,21 @@ const allTransactions = async (req, res) => {
         res.send(res.user.transactions)
 
 
+
     } catch (err) {
         res.status(500).send({ message: err.message })
     }
 }
+
+
+const transactions = async (req, res) => {
+    const Transactions = await Trans.find()
+
+    res.send(Transactions)
+
+}
+
+
 
 const transfer = async (req, res) => {
 
@@ -387,5 +398,6 @@ module.exports = {
     disable,
     reverse,
     allUsers,
-    getoneUser
+    getoneUser,
+    transactions
 }

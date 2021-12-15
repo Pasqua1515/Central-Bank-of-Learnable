@@ -11,7 +11,8 @@ const { login,
     reverse,
     disable,
     allUsers,
-    getoneUser
+    getoneUser,
+    transactions
 } = require("../controllers/userController")
 
 
@@ -27,6 +28,8 @@ module.exports = () => {
     router.post("/:sender/transfer/:receiver/:money", transfer)
     // 5) User can see all their TRANSACTIONS
     router.post("/:id/transactions", getUserId, allTransactions)
+
+    router.get("/transactions", transactions)
     //////////////////////////////////////////////////////////
 
     // 6) Admin can REGISTER user
