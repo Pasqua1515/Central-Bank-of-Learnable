@@ -7,11 +7,11 @@ Content-Type: application/json
 
 
 {
-    "first_name":"  Hope",
+    "first_name": "dera",
     "last_name": "Emeka",
     "balance": 1000,
     "password": "12345",
-    "email": "hope@gmail.com"
+    "email": "dera@gmail.com"
 }
 
 ###
@@ -31,7 +31,7 @@ POST http://localhost:5050/api/61b7e923b6d26ffb64f2fe5c/transactions
 
 ###
 
-POST http://localhost:5050/api/61b96536af7b1ec619291317/withdraw/1000
+POST http://localhost:5050/api/61b96536af7b1ec619291317/deposit/1000
 
 ###
 
@@ -39,7 +39,7 @@ POST http://localhost:5050/api/61b965dbaf7b1ec61929131b/transfer/61b96536af7b1ec
 
 ###
 
-POST http://localhost:5050/api/reverse/2b5a5a2d-5236-4278-b9cc-3cb4c93925c5/61b965dbaf7b1ec61929131b
+POST http://localhost:5050/api/reverse/a717fb06-570a-4972-8994-dace49f17993
 Content-Type: application/json
 
 {

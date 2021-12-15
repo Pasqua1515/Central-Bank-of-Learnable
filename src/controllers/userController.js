@@ -313,17 +313,45 @@ const reverse = async (req, res) => {
     TransNeede[0].reversed = true
 
 
-    TransNeede[0].save()
 
 
 
-    const userNeede = TransNeede[0].account
-    //console.log(userNeede)
-    const user = await User.findOne({
-        first_name: userNeede
+
+    const AllUser = await User.find()
+
+    AllUser.forEach(u => {
+        const matched = u.transactions
+        //console.log(matched)
+
+        matched.map(t => {
+            if (t.transaction == id) {
+                if (t.credit == true) {
+                    t.credit = false
+
+                    t.total = t.total - t.amount
+                    u.balance = u.balance - t.amount
+                }
+
+                if (t.debit == true) {
+                    t.debit = false
+
+                    t.total = t.total + t.amount
+                    u.balance = u.balance + t.amount
+                }
+
+                res.send("Reversed successfully")
+
+
+
+            }
+        })
     })
 
-    user.save()
+
+
+    AllUser.save()
+
+    TransNeede[0].save()
 
     // const paramSenderRev = {
     //     transaction: id,
